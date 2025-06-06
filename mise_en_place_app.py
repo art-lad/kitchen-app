@@ -3,6 +3,11 @@ import pandas as pd
 from datetime import datetime, date
 import os
 
+# --- SAFE RERUN TRIGGER ---
+if st.session_state.get("triggered", False):
+    st.session_state["triggered"] = False
+    st.experimental_rerun()
+
 # ---- PAGE CONFIG ----
 st.set_page_config(page_title="Quinta Pupusas - Kitchen Dashboard", layout="wide")
 
@@ -29,8 +34,9 @@ if not st.session_state["authenticated"]:
         if password == AUTHORIZED_USERS.get(cook_name):
             st.session_state["authenticated"] = True
             st.session_state["cook_name"] = cook_name
+        st.session_state["triggered"] = True
             st.success(f"✅ Welcome, {cook_name} 👋")
-            st.experimental_rerun()
+            st.stop()
         else:
             st.warning("❌ Incorrect password.")
             st.stop()
@@ -43,7 +49,8 @@ if st.session_state["authenticated"]:
     # LOGOUT
     if st.button("Logout"):
         st.session_state.clear()
-        st.experimental_rerun()
+        st.success(f"✅ Welcome, {cook_name} 👋")
+            st.stop()
 
     # HEADER
     st.image("https://quintapupusas.com/wp-content/uploads/2023/12/quintapupusas-logo.svg", width=160)
