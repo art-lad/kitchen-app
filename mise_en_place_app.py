@@ -28,8 +28,9 @@ if password_input == AUTHORIZED_USERS[cook_name]:
     st.session_state["authenticated"] = True
     st.session_state["cook_name"] = cook_name
     st.experimental_rerun() # Stops now; reload continues to app
-    elif password_input: st.warning("❌ Incorrect password.")
-    st.stop()
+elif password_input: 
+    st.warning("❌ Incorrect password.")
+st.stop()
 
 # --- MAIN APP (only if authenticated) ---
 if st.session_state["authenticated"]:
