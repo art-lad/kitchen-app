@@ -1,11 +1,14 @@
+# Rewriting the secured app again after session reset
+secure_app_code = '''
 import streamlit as st
 import pandas as pd
 from datetime import datetime, date
 import os
 
-# ---- MUST be the first Streamlit command ----
+# --- CONFIG MUST BE FIRST ---
 st.set_page_config(page_title="Quinta Pupusas - Kitchen Dashboard", layout="wide")
-# --- AUTH & SESSION ---
+
+# --- AUTH SETUP ---
 AUTHORIZED_USERS = {
     "Carlos": "tacos123",
     "Luz": "guac456",
@@ -16,6 +19,7 @@ if "authenticated" not in st.session_state:
     st.session_state["authenticated"] = False
     st.session_state["cook_name"] = None
 
+# --- LOGIN GATE ---
 if not st.session_state["authenticated"]:
     st.title("🔐 Staff Login")
     cook_name = st.selectbox("Select your name:", list(AUTHORIZED_USERS.keys()))
@@ -27,41 +31,9 @@ if not st.session_state["authenticated"]:
         st.experimental_rerun()
     elif password:
         st.warning("❌ Incorrect password.")
-    st.stop()
-# --- SAFE RERUN TRIGGER ---
-if st.session_state.get("triggered", False):
-    st.session_state["triggered"] = False
-    st.experimental_rerun()
+    st.stop()  # ⛔ Stop here if not logged in
 
-# --- AUTH ---
-AUTHORIZED_USERS = {
-    "Carlos": "tacos123",
-    "Luz": "guac456",
-    "Isaac": "hot789"
-}
-
-# --- SESSION STATE SETUP ---
-if "authenticated" not in st.session_state:
-    st.session_state["authenticated"] = False
-    st.session_state["cook_name"] = None
-
-# --- LOGIN SCREEN ---
-if not st.session_state["authenticated"]:
-    st.title("🔐 Staff Login")
-    cook_name = st.selectbox("Select your name:", list(AUTHORIZED_USERS.keys()))
-    password = st.text_input("Enter your password:", type="password")
-
-    if password == AUTHORIZED_USERS.get(cook_name):
-        st.session_state["authenticated"] = True
-        st.session_state["cook_name"] = cook_name
-        st.session_state["triggered"] = True
-        st.success(f"✅ Welcome, {cook_name} 👋")
-        st.stop()
-    elif password:
-        st.warning("❌ Incorrect password.")
-        st.stop()
-
-# --- MAIN APP (only if authenticated) ---
+# --- LOGGED IN USERS ONLY FROM HERE ---
 cook_name = st.session_state["cook_name"]
 
 # 🔓 Logout button
@@ -75,7 +47,7 @@ st.image("https://quintapupusas.com/wp-content/uploads/2023/12/quintapupusas-log
 st.markdown(f"## 🌮 Welcome, **{cook_name}** — Kitchen Dashboard")
 st.markdown(f"📅 **Today's date:** {today}")
 
-# --- FILES ---
+# --- FILE PATHS ---
 TASK_FILE = "Kitchen mise en place and cleaning tasks.csv"
 VALIDATION_LOG = "Kitchen tasks validation.csv"
 
@@ -124,7 +96,7 @@ with st.form("add_task_form"):
         task_df.to_csv(TASK_FILE, index=False)
         st.success(f"✅ Task added: {new_task_name}")
 
-# --- SHOW TASKS TO VALIDATE ---
+# --- TASKS DUE TODAY ---
 st.markdown("### ✅ Tasks Due Today")
 if today_tasks.empty:
     st.info("No tasks due today.")
@@ -193,3 +165,10 @@ try:
     st.dataframe(log_view)
 except Exception as e:
     st.error(f"⚠️ Could not load validation log: {e}")
+'''
+
+secure_app_file = "/mnt/data/mise_en_place_app_secured.py"
+with open(secure_app_file, "w") as f:
+    f.write(secure_app_code)
+
+secure_app_file
