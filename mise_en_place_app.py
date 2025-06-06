@@ -1,3 +1,14 @@
+import streamlit as st
+
+# 🔐 Simple password protection
+st.set_page_config(page_title="Kitchen Dashboard", layout="wide")
+PASSWORD = "chef2024"  # Change this to your secret
+
+st.title("🔒 Kitchen Dashboard Login")
+
+password_input = st.text_input("Enter password to continue:", type="password")
+if password_input != PASSWORD:
+    st.stop()
 
 import streamlit as st
 import pandas as pd
