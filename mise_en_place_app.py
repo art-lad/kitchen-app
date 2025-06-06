@@ -10,12 +10,13 @@ AUTHORIZED_USERS = {
     "Isaac": "hot789"
 }
 
+st.set_page_config(page_title="Quinta Pupusas - Kitchen Dashboard", layout="wide")
+
 if "authenticated" not in st.session_state:
     st.session_state["authenticated"] = False
     st.session_state["cook_name"] = None
 
-if st.session_state["authenticated"] == False:
-    st.set_page_config(page_title="Quinta Pupusas - Kitchen Dashboard", layout="wide")
+if not st.session_state["authenticated"]:
     st.title("🔐 Staff Login")
 
     cook_name = st.selectbox("Select your name:", list(AUTHORIZED_USERS.keys()))
@@ -25,16 +26,16 @@ if st.session_state["authenticated"] == False:
         st.session_state["authenticated"] = True
         st.session_state["cook_name"] = cook_name
         st.success(f"✅ Welcome, {cook_name} 👋")
-        st.stop()
+        st.experimental_rerun()
     elif password_input:
         st.warning("Incorrect password. Access denied.")
         st.stop()
-else:
-    st.set_page_config(page_title="Quinta Pupusas - Kitchen Dashboard", layout="wide")
-    cook_name = st.session_state["cook_name"]
+
+# LOGOUT BUTTON
+if st.session_state["authenticated"]:
     if st.button("🔓 Logout"):
-        st.session_state["authenticated"] = False
-        st.session_state["cook_name"] = None
+        for key in list(st.session_state.keys()):
+            del st.session_state[key]
         st.experimental_rerun()
 
 # --- CUSTOM STYLE ---
@@ -145,13 +146,13 @@ else:
                 log_df = pd.read_csv(VALIDATION_LOG, on_bad_lines='skip', engine='python')
                 duplicate = ((log_df["Task Name"] == task) & 
                              (log_df["Date"] == today) & 
-                             (log_df["Cook Name"] == cook_name)).any()
+                             (log_df["Cook Name"] == st.session_state["cook_name"])).any()
                 if duplicate:
-                    st.warning(f"Task '{task}' already validated by {cook_name} today.")
+                    st.warning(f"Task '{task}' already validated by {st.session_state['cook_name']} today.")
                     continue
 
             task_df.at[idx, "Completed"] = True
-            task_df.at[idx, "Cook Name"] = cook_name
+            task_df.at[idx, "Cook Name"] = st.session_state["cook_name"]
             task_df.at[idx, "Prep Time (min)"] = time_spent
             efficiency = min(100, int((target_time / time_spent) * 100))
             tag = "🟢" if efficiency >= 90 else "🟡" if efficiency >= 70 else "🔴"
@@ -164,7 +165,7 @@ else:
             log_entry = {
                 "Task Name": task,
                 "Date": today,
-                "Cook Name": cook_name,
+                "Cook Name": st.session_state["cook_name"],
                 "Prep Time (min)": time_spent,
                 "Target Time (min)": target_time,
                 "Efficiency (%)": efficiency,
@@ -177,7 +178,7 @@ else:
             else:
                 log_df.to_csv(VALIDATION_LOG, index=False)
 
-            st.success(f"✅ {task} validated by {cook_name} ({efficiency}% {tag})")
+            st.success(f"✅ {task} validated by {st.session_state['cook_name']} ({efficiency}% {tag})")
 
 st.markdown("### 📊 Validation Log")
 try:
