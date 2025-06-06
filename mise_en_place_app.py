@@ -24,15 +24,14 @@ if not st.session_state["authenticated"]:
     cook_name = st.selectbox("Select your name:", list(AUTHORIZED_USERS.keys()))
     password_input = st.text_input("Enter your password:", type="password")
 
-if password_input:
-    if password_input == AUTHORIZED_USERS[cook_name]:
-        st.session_state["authenticated"] = True
-        st.session_state["cook_name"] = cook_name
-        st.success(f"✅ Welcome, {cook_name} 👋")
-        st.stop()  # ← safe! wait for next interaction to rerun
-    else:
-        st.warning("❌ Incorrect password.")
-        st.stop()
+    if password_input:
+        if password_input == AUTHORIZED_USERS.get(cook_name):
+            st.session_state["authenticated"] = True
+            st.session_state["cook_name"] = cook_name
+            st.experimental_rerun()  # ✅ Clean rerun right here, nothing before or after
+        else:
+            st.warning("❌ Incorrect password.")
+            st.stop()
 
 # --- MAIN APP (only if authenticated) ---
 if st.session_state["authenticated"]:
