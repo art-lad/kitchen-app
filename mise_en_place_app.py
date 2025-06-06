@@ -29,6 +29,7 @@ if not st.session_state["authenticated"]:
         if password == AUTHORIZED_USERS.get(cook_name):
             st.session_state["authenticated"] = True
             st.session_state["cook_name"] = cook_name
+            st.success(f"✅ Welcome, {cook_name} 👋")
             st.experimental_rerun()
         else:
             st.warning("❌ Incorrect password.")
