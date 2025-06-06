@@ -2,6 +2,24 @@ import streamlit as st
 import pandas as pd
 from datetime import datetime, date
 import os
+# --- AUTH LOGIN ---
+AUTHORIZED_USERS = {
+    "Carlos": "tacos123",
+    "Luz": "guac456",
+    "Isaac": "hot789"
+}
+
+st.set_page_config(page_title="Quinta Pupusas - Kitchen Dashboard", layout="wide")
+st.title("🔐 Staff Login")
+
+cook_name = st.selectbox("Select your name:", list(AUTHORIZED_USERS.keys()))
+password_input = st.text_input("Enter your password:", type="password")
+
+if password_input != AUTHORIZED_USERS[cook_name]:
+    st.warning("Incorrect password. Access denied.")
+    st.stop()
+
+st.success(f"✅ Welcome, {cook_name} 👋")
 
 st.set_page_config(page_title="Quinta Pupusas - Kitchen Dashboard", layout="wide")
 
@@ -103,7 +121,7 @@ else:
 
         col1, col2, col3 = st.columns([2, 1, 1])
         with col1:
-            cook = st.text_input("Cook Name", key=f"cook_{i}")
+           cook = cook_name  # Auto-fill from login
         with col2:
             time_spent = st.number_input("Prep Time (min)", min_value=1, step=1, key=f"time_{i}")
         with col3:
