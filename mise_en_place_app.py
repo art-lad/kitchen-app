@@ -1,62 +1,33 @@
-# Rewriting the secured app again after session reset
-secure_app_code = '''
 import streamlit as st
 import pandas as pd
 from datetime import datetime, date
 import os
 
-# --- CONFIG MUST BE FIRST ---
+# --- PAGE CONFIG ---
 st.set_page_config(page_title="Quinta Pupusas - Kitchen Dashboard", layout="wide")
 
-# --- AUTH SETUP ---
-AUTHORIZED_USERS = {
-    "Carlos": "tacos123",
-    "Luz": "guac456",
-    "Isaac": "hot789"
-}
+# --- MANUAL NAME ENTRY ---
+st.title("🌮 Quinta Pupusas - Kitchen Dashboard")
+cook_name = st.text_input("Enter your name to continue:")
+if not cook_name:
+    st.stop()
 
-if "authenticated" not in st.session_state:
-    st.session_state["authenticated"] = False
-    st.session_state["cook_name"] = None
-
-# --- LOGIN GATE ---
-if not st.session_state["authenticated"]:
-    st.title("🔐 Staff Login")
-    cook_name = st.selectbox("Select your name:", list(AUTHORIZED_USERS.keys()))
-    password = st.text_input("Enter your password:", type="password")
-
-    if password == AUTHORIZED_USERS.get(cook_name):
-        st.session_state["authenticated"] = True
-        st.session_state["cook_name"] = cook_name
-        st.experimental_rerun()
-    elif password:
-        st.warning("❌ Incorrect password.")
-    st.stop()  # ⛔ Stop here if not logged in
-
-# --- LOGGED IN USERS ONLY FROM HERE ---
-cook_name = st.session_state["cook_name"]
-
-# 🔓 Logout button
 if st.button("Logout"):
-    st.session_state.clear()
     st.experimental_rerun()
-
-# --- UI HEADER ---
-today = date.today().strftime("%Y-%m-%d")
-st.image("https://quintapupusas.com/wp-content/uploads/2023/12/quintapupusas-logo.svg", width=180)
-st.markdown(f"## 🌮 Welcome, **{cook_name}** — Kitchen Dashboard")
-st.markdown(f"📅 **Today's date:** {today}")
 
 # --- FILE PATHS ---
 TASK_FILE = "Kitchen mise en place and cleaning tasks.csv"
 VALIDATION_LOG = "Kitchen tasks validation.csv"
+today = date.today().strftime("%Y-%m-%d")
 
+# --- LOAD TASKS ---
 if os.path.exists(TASK_FILE):
     task_df = pd.read_csv(TASK_FILE)
 else:
     st.warning("⚠️ Task file not found.")
     st.stop()
 
+# --- FILTER TASKS DUE ---
 def is_due(task_date, last_validated, frequency):
     if frequency == "daily":
         return True
@@ -71,7 +42,7 @@ task_df["Is Due"] = task_df.apply(
 )
 today_tasks = task_df[task_df["Is Due"] == True]
 
-# --- ADD NEW TASK ---
+# --- ADD TASK ---
 st.subheader("➕ Add a New Task")
 with st.form("add_task_form"):
     new_task_name = st.text_input("Task Name")
@@ -96,7 +67,7 @@ with st.form("add_task_form"):
         task_df.to_csv(TASK_FILE, index=False)
         st.success(f"✅ Task added: {new_task_name}")
 
-# --- TASKS DUE TODAY ---
+# --- SHOW TASKS TO VALIDATE ---
 st.markdown("### ✅ Tasks Due Today")
 if today_tasks.empty:
     st.info("No tasks due today.")
@@ -165,10 +136,3 @@ try:
     st.dataframe(log_view)
 except Exception as e:
     st.error(f"⚠️ Could not load validation log: {e}")
-'''
-
-secure_app_file = "/mnt/data/mise_en_place_app_secured.py"
-with open(secure_app_file, "w") as f:
-    f.write(secure_app_code)
-
-secure_app_file
