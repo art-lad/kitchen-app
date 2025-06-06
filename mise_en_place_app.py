@@ -17,8 +17,8 @@ if "authenticated" not in st.session_state:
     st.session_state["cook_name"] = None
 
 if not st.session_state["authenticated"]:
+    st.set_page_config(page_title="Quinta Pupusas - Kitchen Dashboard", layout="wide")
     st.title("🔐 Staff Login")
-
     cook_name = st.selectbox("Select your name:", list(AUTHORIZED_USERS.keys()))
     password_input = st.text_input("Enter your password:", type="password")
 
@@ -26,17 +26,24 @@ if not st.session_state["authenticated"]:
         st.session_state["authenticated"] = True
         st.session_state["cook_name"] = cook_name
         st.success(f"✅ Welcome, {cook_name} 👋")
-        st.stop()
-    elif password_input:
-        st.warning("Incorrect password. Access denied.")
-        st.stop()
-
-# LOGOUT BUTTON
-if st.session_state["authenticated"]:
-    if st.button("🔓 Logout"):
-        for key in list(st.session_state.keys()):
-            del st.session_state[key]
         st.experimental_rerun()
+    elif password_input:
+        st.warning("Incorrect password.")
+    st.stop()
+
+# ✅ MAIN APP starts only when authenticated
+cook_name = st.session_state["cook_name"]
+
+# Optional logout button
+if st.button("🔓 Logout"):
+    st.session_state.clear()
+    st.experimental_rerun()
+
+# 🎨 Your app content starts here
+st.image(...)
+st.markdown(f"Welcome to the kitchen dashboard, **{cook_name}** 👩‍🍳")
+...
+
 
 # --- CUSTOM STYLE ---
 st.markdown("""
