@@ -28,11 +28,12 @@ if not st.session_state["authenticated"]:
         if password_input == AUTHORIZED_USERS.get(cook_name):
             st.session_state["authenticated"] = True
             st.session_state["cook_name"] = cook_name
-            st.experimental_rerun()  # ✅ Clean rerun right here, nothing before or after
+            st.success(f"✅ Welcome, {cook_name} 👋")
+            st.stop()  # ✅ Safely ends the app here — next reload shows dashboard
         else:
             st.warning("❌ Incorrect password.")
             st.stop()
-
+            
 # --- MAIN APP (only if authenticated) ---
 if st.session_state["authenticated"]:
     cook_name = st.session_state["cook_name"]
