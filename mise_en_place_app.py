@@ -24,13 +24,14 @@ if not st.session_state["authenticated"]:
     cook_name = st.selectbox("Select your name:", list(AUTHORIZED_USERS.keys()))
     password_input = st.text_input("Enter your password:", type="password")
 
-if password_input == AUTHORIZED_USERS[cook_name]:
-    st.session_state["authenticated"] = True
-    st.session_state["cook_name"] = cook_name
-    st.experimental_rerun() # Stops now; reload continues to app
-elif password_input: 
-    st.warning("❌ Incorrect password.")
-st.stop()
+if password_input:
+    if password_input == AUTHORIZED_USERS[cook_name]:
+        st.session_state["authenticated"] = True
+        st.session_state["cook_name"] = cook_name
+        st.experimental_rerun()  # no Streamlit UI command before this
+    else:
+        st.warning("❌ Incorrect password.")
+        st.stop()
 
 # --- MAIN APP (only if authenticated) ---
 if st.session_state["authenticated"]:
