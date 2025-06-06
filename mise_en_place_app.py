@@ -28,7 +28,8 @@ if password_input:
     if password_input == AUTHORIZED_USERS[cook_name]:
         st.session_state["authenticated"] = True
         st.session_state["cook_name"] = cook_name
-        st.experimental_rerun()  # no Streamlit UI command before this
+        st.success(f"✅ Welcome, {cook_name} 👋")
+        st.stop()  # ← safe! wait for next interaction to rerun
     else:
         st.warning("❌ Incorrect password.")
         st.stop()
