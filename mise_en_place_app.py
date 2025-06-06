@@ -3,7 +3,7 @@ import pandas as pd
 from datetime import datetime, date
 import os
 
-# --- AUTH LOGIN & LOGOUT ---
+# --- AUTH ---
 AUTHORIZED_USERS = {
     "Carlos": "tacos123",
     "Luz": "guac456",
@@ -12,12 +12,13 @@ AUTHORIZED_USERS = {
 
 st.set_page_config(page_title="Quinta Pupusas - Kitchen Dashboard", layout="wide")
 
+# --- Initialize session state
 if "authenticated" not in st.session_state:
     st.session_state["authenticated"] = False
     st.session_state["cook_name"] = None
 
+# --- Login screen
 if not st.session_state["authenticated"]:
-    st.set_page_config(page_title="Quinta Pupusas - Kitchen Dashboard", layout="wide")
     st.title("🔐 Staff Login")
     cook_name = st.selectbox("Select your name:", list(AUTHORIZED_USERS.keys()))
     password_input = st.text_input("Enter your password:", type="password")
@@ -28,20 +29,21 @@ if not st.session_state["authenticated"]:
         st.success(f"✅ Welcome, {cook_name} 👋")
         st.experimental_rerun()
     elif password_input:
-        st.warning("Incorrect password.")
+        st.warning("❌ Incorrect password.")
     st.stop()
 
-# ✅ MAIN APP starts only when authenticated
-cook_name = st.session_state["cook_name"]
-
-# Optional logout button
+# --- Logout
 if st.button("🔓 Logout"):
     st.session_state.clear()
     st.experimental_rerun()
 
-# 🎨 Your app content starts here
-st.image(...)
-st.markdown(f"Welcome to the kitchen dashboard, **{cook_name}** 👩‍🍳")
+# --- MAIN APP (only after successful login)
+cook_name = st.session_state["cook_name"]
+
+st.image("https://quintapupusas.com/wp-content/uploads/2023/12/quintapupusas-logo.svg", width=180)
+st.markdown(f"## 🌮 Welcome, **{cook_name}** — Kitchen Dashboard")
+
+# (Now you continue with your app logic: load tasks, add forms, validations, etc.)
 ...
 
 
