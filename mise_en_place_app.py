@@ -3,24 +3,39 @@ import pandas as pd
 from datetime import datetime, date
 import os
 
-# --- AUTH LOGIN ---
+# --- AUTH LOGIN & LOGOUT ---
 AUTHORIZED_USERS = {
     "Carlos": "tacos123",
     "Luz": "guac456",
     "Isaac": "hot789"
 }
 
-st.set_page_config(page_title="Quinta Pupusas - Kitchen Dashboard", layout="wide")
-st.title("🔐 Staff Login")
+if "authenticated" not in st.session_state:
+    st.session_state["authenticated"] = False
+    st.session_state["cook_name"] = None
 
-cook_name = st.selectbox("Select your name:", list(AUTHORIZED_USERS.keys()))
-password_input = st.text_input("Enter your password:", type="password")
+if st.session_state["authenticated"] == False:
+    st.set_page_config(page_title="Quinta Pupusas - Kitchen Dashboard", layout="wide")
+    st.title("🔐 Staff Login")
 
-if password_input != AUTHORIZED_USERS[cook_name]:
-    st.warning("Incorrect password. Access denied.")
-    st.stop()
+    cook_name = st.selectbox("Select your name:", list(AUTHORIZED_USERS.keys()))
+    password_input = st.text_input("Enter your password:", type="password")
 
-st.success(f"✅ Welcome, {cook_name} 👋")
+    if password_input == AUTHORIZED_USERS[cook_name]:
+        st.session_state["authenticated"] = True
+        st.session_state["cook_name"] = cook_name
+        st.success(f"✅ Welcome, {cook_name} 👋")
+        st.experimental_rerun()
+    elif password_input:
+        st.warning("Incorrect password. Access denied.")
+        st.stop()
+else:
+    st.set_page_config(page_title="Quinta Pupusas - Kitchen Dashboard", layout="wide")
+    cook_name = st.session_state["cook_name"]
+    if st.button("🔓 Logout"):
+        st.session_state["authenticated"] = False
+        st.session_state["cook_name"] = None
+        st.experimental_rerun()
 
 # --- CUSTOM STYLE ---
 st.markdown("""
