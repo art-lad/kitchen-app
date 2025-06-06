@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 from datetime import datetime, date
 import os
+
 # --- AUTH LOGIN ---
 AUTHORIZED_USERS = {
     "Carlos": "tacos123",
@@ -21,8 +22,7 @@ if password_input != AUTHORIZED_USERS[cook_name]:
 
 st.success(f"✅ Welcome, {cook_name} 👋")
 
-st.set_page_config(page_title="Quinta Pupusas - Kitchen Dashboard", layout="wide")
-
+# --- CUSTOM STYLE ---
 st.markdown("""
     <style>
         body {
@@ -119,30 +119,24 @@ else:
 
         st.markdown(f'<div class="task-info"><b>{task}</b> — 📅 {task_date} | 🎯 {target_time} min</div>', unsafe_allow_html=True)
 
-        col1, col2, col3 = st.columns([2, 1, 1])
-        with col1:
-           cook = cook_name  # Auto-fill from login
+        col2, col3 = st.columns([1, 1])
         with col2:
             time_spent = st.number_input("Prep Time (min)", min_value=1, step=1, key=f"time_{i}")
         with col3:
             validate = st.button("✅ Validate", key=f"validate_{i}")
 
         if validate:
-            if not cook:
-                st.warning("Please enter the cook's name.")
-                continue
-
             if os.path.exists(VALIDATION_LOG):
                 log_df = pd.read_csv(VALIDATION_LOG, on_bad_lines='skip', engine='python')
                 duplicate = ((log_df["Task Name"] == task) & 
                              (log_df["Date"] == today) & 
-                             (log_df["Cook Name"] == cook)).any()
+                             (log_df["Cook Name"] == cook_name)).any()
                 if duplicate:
-                    st.warning(f"Task '{task}' already validated by {cook} today.")
+                    st.warning(f"Task '{task}' already validated by {cook_name} today.")
                     continue
 
             task_df.at[idx, "Completed"] = True
-            task_df.at[idx, "Cook Name"] = cook
+            task_df.at[idx, "Cook Name"] = cook_name
             task_df.at[idx, "Prep Time (min)"] = time_spent
             efficiency = min(100, int((target_time / time_spent) * 100))
             tag = "🟢" if efficiency >= 90 else "🟡" if efficiency >= 70 else "🔴"
@@ -155,7 +149,7 @@ else:
             log_entry = {
                 "Task Name": task,
                 "Date": today,
-                "Cook Name": cook,
+                "Cook Name": cook_name,
                 "Prep Time (min)": time_spent,
                 "Target Time (min)": target_time,
                 "Efficiency (%)": efficiency,
@@ -168,7 +162,7 @@ else:
             else:
                 log_df.to_csv(VALIDATION_LOG, index=False)
 
-            st.success(f"✅ {task} validated by {cook} ({efficiency}% {tag})")
+            st.success(f"✅ {task} validated by {cook_name} ({efficiency}% {tag})")
 
 st.markdown("### 📊 Validation Log")
 try:
