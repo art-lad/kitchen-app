@@ -1,42 +1,63 @@
 import streamlit as st
-
-# 🔐 Simple password protection
-st.set_page_config(page_title="Kitchen Dashboard", layout="wide")
-PASSWORD = "chef2024"  # Change this to your secret
-
-st.title("🔒 Kitchen Dashboard Login")
-
-password_input = st.text_input("Enter password to continue:", type="password")
-if password_input != PASSWORD:
-    st.stop()
-
-import streamlit as st
 import pandas as pd
 from datetime import datetime, date
 import os
 
-# File names
+st.set_page_config(page_title="Quinta Pupusas - Kitchen Dashboard", layout="wide")
+
+st.markdown("""
+    <style>
+        body {
+            background-color: #fdf9f5;
+        }
+        .main {
+            background-color: #fdf9f5;
+            font-family: 'Helvetica Neue', sans-serif;
+        }
+        .title-style {
+            font-size: 2.2em;
+            font-weight: bold;
+            color: #8A3324;
+            text-align: center;
+            margin-bottom: 0.2em;
+        }
+        .subtitle-style {
+            font-size: 1.1em;
+            color: #5a5a5a;
+            text-align: center;
+            margin-bottom: 2em;
+        }
+        .task-info {
+            font-size: 0.95em;
+            color: #444;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5em;
+        }
+    </style>
+""", unsafe_allow_html=True)
+
+st.image("https://quintapupusas.com/wp-content/uploads/2023/12/quintapupusas-logo.svg", width=180)
+st.markdown('<div class="title-style">🌮 Quinta Pupusas - Kitchen Dashboard</div>', unsafe_allow_html=True)
+st.markdown(f'<div class="subtitle-style">Daily mise en place for 2025-06-06</div>', unsafe_allow_html=True)
+
 TASK_FILE = "Kitchen mise en place and cleaning tasks.csv"
 VALIDATION_LOG = "Kitchen tasks validation.csv"
 
-# Load task data
 if os.path.exists(TASK_FILE):
     task_df = pd.read_csv(TASK_FILE)
 else:
     st.error("Task file is missing.")
     st.stop()
 
-# Today's date
-today = date.today().strftime("%Y-%m-%d")
-
-# Determine if task is due
 def is_due(task_date, last_validated, frequency):
     if frequency == "daily":
         return True
     elif frequency == "weekly":
         if not last_validated or pd.isna(last_validated):
             return True
-        return (pd.to_datetime(today) - pd.to_datetime(last_validated)).days >= 7
+        return (pd.to_datetime(date.today()) - pd.to_datetime(last_validated)).days >= 7
     return True
 
 task_df["Is Due"] = task_df.apply(
@@ -44,39 +65,31 @@ task_df["Is Due"] = task_df.apply(
 )
 today_tasks = task_df[task_df["Is Due"] == True]
 
-# Title
-st.title("🍽️ Intelligent Kitchen Task Validator")
-st.markdown(f"### 📅 Today's Date: {today}")
-
-# Add a new task manually
 st.subheader("➕ Add a New Task")
 with st.form("add_task_form"):
     new_task_name = st.text_input("Task Name")
     new_frequency = st.selectbox("Frequency", ["once", "daily", "weekly"])
     new_target_time = st.number_input("Target Time (min)", min_value=1, step=1)
     submitted = st.form_submit_button("Add Task")
-    if submitted:
-        if new_task_name:
-            new_row = {
-                "Task Name": new_task_name,
-                "Frequency": new_frequency,
-                "Date": today,
-                "Completed": False,
-                "Cook Name": "",
-                "Prep Time (min)": "",
-                "Target Time (min)": new_target_time,
-                "Efficiency (%)": "",
-                "Performance Tag": "",
-                "Last Validated Date": "",
-                "Is Due": True
-            }
-            task_df = pd.concat([task_df, pd.DataFrame([new_row])], ignore_index=True)
-            task_df.to_csv(TASK_FILE, index=False)
-            st.success(f"Added task: {new_task_name}")
-        else:
-            st.warning("Please enter a task name.")
+    if submitted and new_task_name:
+        new_row = {
+            "Task Name": new_task_name,
+            "Frequency": new_frequency,
+            "Date": date.today().strftime("%Y-%m-%d"),
+            "Completed": False,
+            "Cook Name": "",
+            "Prep Time (min)": "",
+            "Target Time (min)": new_target_time,
+            "Efficiency (%)": "",
+            "Performance Tag": "",
+            "Last Validated Date": "",
+            "Is Due": True
+        }
+        task_df = pd.concat([task_df, pd.DataFrame([new_row])], ignore_index=True)
+        task_df.to_csv(TASK_FILE, index=False)
+        st.success(f"Added task: {new_task_name}")
 
-# Display tasks
+st.markdown("### ✅ Tasks Due Today")
 if today_tasks.empty:
     st.info("No tasks due today.")
 else:
@@ -86,10 +99,7 @@ else:
         task_date = row["Date"]
         target_time = row["Target Time (min)"]
 
-        st.markdown(f"""---
-### {task}
-📅 Due: **{task_date}**  
-🎯 Target Time: **{target_time} min**""")
+        st.markdown(f'<div class="task-info"><b>{task}</b> — 📅 {task_date} | 🎯 {target_time} min</div>', unsafe_allow_html=True)
 
         col1, col2, col3 = st.columns([2, 1, 1])
         with col1:
@@ -110,7 +120,7 @@ else:
                              (log_df["Date"] == today) & 
                              (log_df["Cook Name"] == cook)).any()
                 if duplicate:
-                    st.warning(f"{task} already validated by {cook} today.")
+                    st.warning(f"Task '{task}' already validated by {cook} today.")
                     continue
 
             task_df.at[idx, "Completed"] = True
@@ -142,30 +152,11 @@ else:
 
             st.success(f"✅ {task} validated by {cook} ({efficiency}% {tag})")
 
-# Validation Log Viewer
-st.subheader("📊 Validation Log")
-
+st.markdown("### 📊 Validation Log")
 try:
     log_view = pd.read_csv(VALIDATION_LOG, on_bad_lines='skip', engine='python')
     log_view.dropna(how="all", inplace=True)
     log_view.dropna(axis=1, how="all", inplace=True)
-
-    expected_cols = [
-        "Task Name", "Date", "Cook Name", "Prep Time (min)",
-        "Target Time (min)", "Efficiency (%)", "Performance Tag", "Validation Time"
-    ]
-    log_view = log_view[[col for col in expected_cols if col in log_view.columns]]
-    log_view = log_view.astype(str).reset_index(drop=True)
-
-    # Render as markdown table
-    if not log_view.empty:
-        markdown = "| " + " | ".join(log_view.columns) + " |\n"
-        markdown += "| " + " | ".join(["---"] * len(log_view.columns)) + " |\n"
-        for _, row in log_view.iterrows():
-            markdown += "| " + " | ".join(row.values) + " |\n"
-        st.markdown(markdown)
-    else:
-        st.info("Validation log is empty.")
-
+    st.dataframe(log_view)
 except Exception as e:
     st.error(f"⚠️ Could not load validation log: {e}")
