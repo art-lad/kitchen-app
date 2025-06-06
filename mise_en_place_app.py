@@ -1,48 +1,62 @@
-# Re-execute after reset to generate the file again
-simplified_app_code = '''
+# Rewriting the secured app again after session reset
+secure_app_code = '''
 import streamlit as st
 import pandas as pd
 from datetime import datetime, date
 import os
 
-# --- CONFIG ---
-st.set_page_config(page_title="Kitchen Dashboard", layout="wide")
+# --- CONFIG MUST BE FIRST ---
+st.set_page_config(page_title="Quinta Pupusas - Kitchen Dashboard", layout="wide")
 
-# --- SIMPLE PASSWORD PROTECTION ---
-PASSWORD = "kitchen2025"
+# --- AUTH SETUP ---
+AUTHORIZED_USERS = {
+    "Carlos": "tacos123",
+    "Luz": "guac456",
+    "Isaac": "hot789"
+}
 
 if "authenticated" not in st.session_state:
     st.session_state["authenticated"] = False
+    st.session_state["cook_name"] = None
 
+# --- LOGIN GATE ---
 if not st.session_state["authenticated"]:
-    st.title("🔐 Kitchen Login")
-    password = st.text_input("Enter password:", type="password")
-    if password == PASSWORD:
+    st.title("🔐 Staff Login")
+    cook_name = st.selectbox("Select your name:", list(AUTHORIZED_USERS.keys()))
+    password = st.text_input("Enter your password:", type="password")
+
+    if password == AUTHORIZED_USERS.get(cook_name):
         st.session_state["authenticated"] = True
+        st.session_state["cook_name"] = cook_name
         st.experimental_rerun()
     elif password:
         st.warning("❌ Incorrect password.")
-    st.stop()
+    st.stop()  # ⛔ Stop here if not logged in
 
-# --- LOGGED-IN USERS ---
-st.title("🌮 Quinta Pupusas - Kitchen Dashboard")
+# --- LOGGED IN USERS ONLY FROM HERE ---
+cook_name = st.session_state["cook_name"]
+
+# 🔓 Logout button
 if st.button("Logout"):
-    st.session_state["authenticated"] = False
+    st.session_state.clear()
     st.experimental_rerun()
+
+# --- UI HEADER ---
+today = date.today().strftime("%Y-%m-%d")
+st.image("https://quintapupusas.com/wp-content/uploads/2023/12/quintapupusas-logo.svg", width=180)
+st.markdown(f"## 🌮 Welcome, **{cook_name}** — Kitchen Dashboard")
+st.markdown(f"📅 **Today's date:** {today}")
 
 # --- FILE PATHS ---
 TASK_FILE = "Kitchen mise en place and cleaning tasks.csv"
 VALIDATION_LOG = "Kitchen tasks validation.csv"
-today = date.today().strftime("%Y-%m-%d")
 
-# --- LOAD TASKS ---
 if os.path.exists(TASK_FILE):
     task_df = pd.read_csv(TASK_FILE)
 else:
     st.warning("⚠️ Task file not found.")
     st.stop()
 
-# --- FILTER TASKS DUE ---
 def is_due(task_date, last_validated, frequency):
     if frequency == "daily":
         return True
@@ -82,7 +96,7 @@ with st.form("add_task_form"):
         task_df.to_csv(TASK_FILE, index=False)
         st.success(f"✅ Task added: {new_task_name}")
 
-# --- SHOW TASKS TO VALIDATE ---
+# --- TASKS DUE TODAY ---
 st.markdown("### ✅ Tasks Due Today")
 if today_tasks.empty:
     st.info("No tasks due today.")
@@ -106,13 +120,15 @@ else:
                 log_df = pd.read_csv(VALIDATION_LOG, on_bad_lines='skip', engine='python')
                 duplicate = (
                     (log_df["Task Name"] == task) &
-                    (log_df["Date"] == today)
+                    (log_df["Date"] == today) &
+                    (log_df["Cook Name"] == cook_name)
                 ).any()
                 if duplicate:
-                    st.warning(f"Task '{task}' already validated today.")
+                    st.warning(f"Task '{task}' already validated by {cook_name} today.")
                     continue
 
             task_df.at[idx, "Completed"] = True
+            task_df.at[idx, "Cook Name"] = cook_name
             task_df.at[idx, "Prep Time (min)"] = time_spent
             efficiency = min(100, int((target_time / time_spent) * 100))
             tag = "🟢" if efficiency >= 90 else "🟡" if efficiency >= 70 else "🔴"
@@ -125,6 +141,7 @@ else:
             log_entry = {
                 "Task Name": task,
                 "Date": today,
+                "Cook Name": cook_name,
                 "Prep Time (min)": time_spent,
                 "Target Time (min)": target_time,
                 "Efficiency (%)": efficiency,
@@ -137,7 +154,7 @@ else:
             else:
                 log_df.to_csv(VALIDATION_LOG, index=False)
 
-            st.success(f"✅ {task} validated ({efficiency}% {tag})")
+            st.success(f"✅ {task} validated by {cook_name} ({efficiency}% {tag})")
 
 # --- VALIDATION LOG ---
 st.markdown("### 📊 Validation Log")
@@ -150,8 +167,8 @@ except Exception as e:
     st.error(f"⚠️ Could not load validation log: {e}")
 '''
 
-file_path = "/mnt/data/mise_en_place_simplified.py"
-with open(file_path, "w") as f:
-    f.write(simplified_app_code)
+secure_app_file = "/mnt/data/mise_en_place_app_secured.py"
+with open(secure_app_file, "w") as f:
+    f.write(secure_app_code)
 
-file_path
+secure_app_file
