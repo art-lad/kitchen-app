@@ -1,0 +1,6 @@
+Task Name,Frequency,Date,Completed,Cook Name,Prep Time (min),Target Time (min),Efficiency (%),Performance Tag,Last Validated Date,Is Due
+Pico de gallo,daily,2025-06-05,True,Arthur,25.0,20,80.0,🟡,2025-06-05,True
+Guacamole,daily,2025-06-05,False,,,20,,,,True
+Clean workstation,daily,2025-06-05,False,,,20,,,,True
+Inventory,weekly,2025-06-05,False,,,20,,,,True
+Organise fridge,weekly,2025-06-05,False,,,20,,,,True
