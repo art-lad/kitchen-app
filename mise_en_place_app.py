@@ -5,7 +5,29 @@ import os
 
 # ---- MUST be the first Streamlit command ----
 st.set_page_config(page_title="Quinta Pupusas - Kitchen Dashboard", layout="wide")
+# --- AUTH & SESSION ---
+AUTHORIZED_USERS = {
+    "Carlos": "tacos123",
+    "Luz": "guac456",
+    "Isaac": "hot789"
+}
 
+if "authenticated" not in st.session_state:
+    st.session_state["authenticated"] = False
+    st.session_state["cook_name"] = None
+
+if not st.session_state["authenticated"]:
+    st.title("🔐 Staff Login")
+    cook_name = st.selectbox("Select your name:", list(AUTHORIZED_USERS.keys()))
+    password = st.text_input("Enter your password:", type="password")
+
+    if password == AUTHORIZED_USERS.get(cook_name):
+        st.session_state["authenticated"] = True
+        st.session_state["cook_name"] = cook_name
+        st.experimental_rerun()
+    elif password:
+        st.warning("❌ Incorrect password.")
+    st.stop()
 # --- SAFE RERUN TRIGGER ---
 if st.session_state.get("triggered", False):
     st.session_state["triggered"] = False
