@@ -24,11 +24,10 @@ if not st.session_state["authenticated"]:
     cook_name = st.selectbox("Select your name:", list(AUTHORIZED_USERS.keys()))
     password_input = st.text_input("Enter your password:", type="password")
 
-    if password_input == AUTHORIZED_USERS[cook_name]:
-        st.session_state["authenticated"] = True
-        st.session_state["cook_name"] = cook_name
-        st.success(f"✅ Welcome, {cook_name} 👋")
-        st.stop()  # Stops now; reload continues to app
+if password_input == AUTHORIZED_USERS[cook_name]:
+    st.session_state["authenticated"] = True
+    st.session_state["cook_name"] = cook_name
+    st.experimental_rerun() # Stops now; reload continues to app
     elif password_input:
         st.warning("❌ Incorrect password.")
         st.stop()
