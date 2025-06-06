@@ -32,11 +32,11 @@ if not st.session_state["authenticated"]:
     password = st.text_input("Enter your password:", type="password")
     if password:
         if password == AUTHORIZED_USERS.get(cook_name):
-            st.session_state["authenticated"] = True
-            st.session_state["cook_name"] = cook_name
-        st.session_state["triggered"] = True
-            st.success(f"✅ Welcome, {cook_name} 👋")
-            st.stop()
+    st.session_state["authenticated"] = True
+    st.session_state["cook_name"] = cook_name
+    st.session_state["triggered"] = True
+    st.success(f"✅ Welcome, {cook_name} 👋")
+    st.stop()
         else:
             st.warning("❌ Incorrect password.")
             st.stop()
