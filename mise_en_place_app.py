@@ -33,9 +33,9 @@ else:
     st.set_page_config(page_title="Quinta Pupusas - Kitchen Dashboard", layout="wide")
     cook_name = st.session_state["cook_name"]
     if st.button("🔓 Logout"):
-        st.session_state["authenticated"] = False
-        st.session_state["cook_name"] = None
-        st.experimental_rerun()
+    st.session_state.clear()
+    st.experimental_rerun()
+
 
 # --- CUSTOM STYLE ---
 st.markdown("""
