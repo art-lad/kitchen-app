@@ -1,13 +1,12 @@
-# Regenerating the version of the app with a single shared password login
-
-single_password_app_code = '''
+# Re-execute after reset to generate the file again
+simplified_app_code = '''
 import streamlit as st
 import pandas as pd
 from datetime import datetime, date
 import os
 
-# --- PAGE CONFIG ---
-st.set_page_config(page_title="Quinta Pupusas - Kitchen Dashboard", layout="wide")
+# --- CONFIG ---
+st.set_page_config(page_title="Kitchen Dashboard", layout="wide")
 
 # --- SIMPLE PASSWORD PROTECTION ---
 PASSWORD = "kitchen2025"
@@ -16,19 +15,17 @@ if "authenticated" not in st.session_state:
     st.session_state["authenticated"] = False
 
 if not st.session_state["authenticated"]:
-    st.title("🔐 Kitchen Staff Login")
-    password_input = st.text_input("Enter password to continue:", type="password")
-    if password_input == PASSWORD:
+    st.title("🔐 Kitchen Login")
+    password = st.text_input("Enter password:", type="password")
+    if password == PASSWORD:
         st.session_state["authenticated"] = True
         st.experimental_rerun()
-    elif password_input:
+    elif password:
         st.warning("❌ Incorrect password.")
     st.stop()
 
 # --- LOGGED-IN USERS ---
 st.title("🌮 Quinta Pupusas - Kitchen Dashboard")
-st.markdown("Welcome to the staff task management panel.")
-
 if st.button("Logout"):
     st.session_state["authenticated"] = False
     st.experimental_rerun()
@@ -60,7 +57,7 @@ task_df["Is Due"] = task_df.apply(
 )
 today_tasks = task_df[task_df["Is Due"] == True]
 
-# --- ADD TASK ---
+# --- ADD NEW TASK ---
 st.subheader("➕ Add a New Task")
 with st.form("add_task_form"):
     new_task_name = st.text_input("Task Name")
@@ -153,9 +150,8 @@ except Exception as e:
     st.error(f"⚠️ Could not load validation log: {e}")
 '''
 
-# Save the file
-file_path = "/mnt/data/mise_en_place_app_single_password.py"
+file_path = "/mnt/data/mise_en_place_simplified.py"
 with open(file_path, "w") as f:
-    f.write(single_password_app_code)
+    f.write(simplified_app_code)
 
 file_path
