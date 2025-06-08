@@ -42,6 +42,75 @@ task_df["Is Due"] = task_df.apply(
 )
 today_tasks = task_df[task_df["Is Due"] == True]
 
+# --- GROUP TASKS BY DATE ---
+grouped_tasks = task_df[
+    (task_df["Is Due"] == True) &
+    (task_df["Completed"] != True)
+].groupby("Date")
+
+st.markdown("## ✅ Tasks To Be Completed")
+
+if grouped_tasks.ngroups == 0:
+    st.info("🎉 No pending tasks due at the moment.")
+else:
+    for task_date, group in grouped_tasks:
+        st.markdown(f"### 📅 Tasks for {task_date}")
+
+        for i, row in group.iterrows():
+            task = row["Task Name"]
+            idx = row.name
+            target_time = row["Target Time (min)"]
+
+            # Make it compact on one line
+            st.markdown(f"**{task}** — 🎯 {target_time} min")
+
+            col1, col2 = st.columns([1, 1])
+            with col1:
+                time_spent = st.number_input(
+                    "Prep Time (min)", min_value=1, step=1, key=f"time_{i}"
+                )
+            with col2:
+                validate = st.button("✅ Validate", key=f"validate_{i}")
+
+            if validate:
+                if os.path.exists(VALIDATION_LOG):
+                    log_df = pd.read_csv(VALIDATION_LOG, on_bad_lines='skip', engine='python')
+                    duplicate = (
+                        (log_df["Task Name"] == task) &
+                        (log_df["Date"] == task_date)
+                    ).any()
+                    if duplicate:
+                        st.warning(f"Task '{task}' already validated for {task_date}.")
+                        continue
+
+                task_df.at[idx, "Completed"] = True
+                task_df.at[idx, "Prep Time (min)"] = time_spent
+                efficiency = min(100, int((target_time / time_spent) * 100))
+                tag = "🟢" if efficiency >= 90 else "🟡" if efficiency >= 70 else "🔴"
+                task_df.at[idx, "Efficiency (%)"] = efficiency
+                task_df.at[idx, "Performance Tag"] = tag
+                task_df.at[idx, "Last Validated Date"] = today
+                task_df.to_csv(TASK_FILE, index=False)
+
+                log_entry = {
+                    "Task Name": task,
+                    "Date": task_date,
+                    "Prep Time (min)": time_spent,
+                    "Target Time (min)": target_time,
+                    "Efficiency (%)": efficiency,
+                    "Performance Tag": tag,
+                    "Validation Time": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                }
+                log_df = pd.DataFrame([log_entry])
+                if os.path.exists(VALIDATION_LOG):
+                    log_df.to_csv(VALIDATION_LOG, mode='a', header=False, index=False)
+                else:
+                    log_df.to_csv(VALIDATION_LOG, index=False)
+
+                st.success(f"✅ {task} validated ({efficiency}% {tag}) for {task_date}")
+                st.experimental_rerun()  # Refresh view
+
+
 # --- ADD TASK ---
 st.subheader("➕ Add a New Task")
 with st.form("add_task_form"):
