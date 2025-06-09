@@ -4,10 +4,10 @@ from datetime import datetime, date
 import os
 
 # --- PAGE CONFIG ---
-st.set_page_config(page_title="Quinta Pupusas - Kitchen Dashboard", layout="wide")
+st.set_page_config(page_title="Task Manager", layout="wide")
 
 # --- MANUAL NAME ENTRY ---
-st.title("🌮 Quinta Pupusas - Kitchen Dashboard")
+st.title("Task Manager")
 cook_name = st.text_input("Enter your name to continue:")
 if not cook_name:
     st.stop()
